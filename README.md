@@ -1,4 +1,4 @@
-# Inscription
+# Inscryption
 
 A Java/JavaFX card battler inspired by *Inscryption*, built as an OOP course project. Players draft a deck, fight through three locations of escalating enemies, and face a boss at the end of each — all governed by a sigil system where individual card abilities compose independently rather than being hardcoded per-card.
 
