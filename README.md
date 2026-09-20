@@ -1,4 +1,4 @@
-# Inscription
+# Inscryption
 
 A Java/JavaFX card battler inspired by *Inscryption*, built as an OOP course project. Players draft a deck, fight through three locations of escalating enemies, and face a boss at the end of each — all governed by a sigil system where individual card abilities compose independently rather than being hardcoded per-card.
 
@@ -33,7 +33,7 @@ mvn javafx:run
 
 ```bash
 mvn compile
-java -cp target/classes com.inscription.Main
+java -cp target/classes com.inscryption.Main
 ```
 
 `Main` is a self-contained battery of scripted scenarios and assertions covering sigil mechanics, event outcomes, and full battles — not a game to play, but the project's regression safety net. It prints a running log of each check and a final pass/fail summary.
@@ -41,7 +41,7 @@ java -cp target/classes com.inscription.Main
 ## Project structure
 
 ```
-src/main/java/com/inscription/
+src/main/java/com/inscryption/
 ├── ai/         opponent decision-making
 ├── board/      lane/slot board state
 ├── cli/        console entry point and the core Battle loop

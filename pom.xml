@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.inscription</groupId>
-    <artifactId>inscription-core</artifactId>
+    <groupId>com.inscryption</groupId>
+    <artifactId>inscryption-core</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -50,7 +50,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
-                    <mainClass>com.inscription.cli.RunGame</mainClass>
+                    <mainClass>com.inscryption.cli.RunGame</mainClass>
                 </configuration>
             </plugin>
             <!-- Run the JavaFX GUI with: mvn javafx:run
@@ -61,7 +61,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.inscription.gui.InscriptionApp</mainClass>
+                    <mainClass>com.inscryption.gui.InscryptionApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
