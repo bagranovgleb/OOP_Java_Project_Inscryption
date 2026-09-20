@@ -149,12 +149,27 @@ public class Board {
         for (Slot slot : slots) {
             Card occupant = slot.getOccupant();
             if (occupant != null && !occupant.isAlive()) {
-                if (isPlayerSide) {
+                if (isPlayerSide && !occupant.hasSigil("Conjured")) {
+                    // A Conjured card was never meant to persist into the deck
+                    // regardless - no point capturing it into the graveyard
+                    // just to discard it again at the final reshuffle step.
                     playerGraveyard.add(occupant);
                 }
                 slot.clear();
             }
         }
+    }
+
+    /**
+     * Directly places a card into the player-side graveyard, without it
+     * having died in the ordinary sense - used by Fledgling's transform
+     * variant, which replaces a card with its grown form mid-fight. The
+     * original (pre-growth) card is put here so it comes back as ITSELF
+     * when the graveyard gets reclaimed after the fight, rather than
+     * vanishing along with the slot it used to occupy.
+     */
+    public void addToPlayerGraveyard(Card card) {
+        playerGraveyard.add(card);
     }
 
     /** Every player-side card that has died on this board so far - see the field's own doc for why this exists and how Battle uses it. */

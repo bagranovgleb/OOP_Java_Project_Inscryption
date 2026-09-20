@@ -60,8 +60,17 @@ public class FledglingSigil implements Sigil {
             }
             boolean isPlayerSide = location[0] == 1;
             int lane = location[1];
-            context.getBoard().removeCard(isPlayerSide, lane);
-            context.getBoard().placeCard(isPlayerSide, lane, strongerForm.get());
+            Card original = context.getBoard().removeCard(isPlayerSide, lane);
+            if (isPlayerSide && original != null) {
+                // The pre-growth card goes to the graveyard directly, so it
+                // comes back as ITSELF (a Raven Egg, say) once the fight ends
+                // and the graveyard gets reclaimed - not lost along with the
+                // slot it used to occupy.
+                context.getBoard().addToPlayerGraveyard(original);
+            }
+            Card grown = strongerForm.get();
+            grown.addSigil(new ConjuredMarker()); // the grown form is new for this fight - it shouldn't persist into the deck as the grown version
+            context.getBoard().placeCard(isPlayerSide, lane, grown);
         } else {
             owner.buffAttack(attackGain);
             owner.buffMaxHealth(healthGain);

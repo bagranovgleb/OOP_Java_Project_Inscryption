@@ -12,13 +12,19 @@ import java.util.function.Predicate;
  * filter ("same rules for market" per the reference spec), but the Trader
  * shows fused (double-stat) versions of eligible cards for it instead of
  * plain ones - see isFused().
+ * <p>
+ * Wolf's filter is a maximum range (up to 3 Blood or up to 4 Bones), not
+ * an exact match - any card under that ceiling still qualifies, but gets
+ * a random bonus sigil applied in the Trader's market to make up for
+ * being a lower tier than the pelt would normally command (see
+ * TradePeltsEvent.generateMarket()).
  */
 public enum PeltKind {
 
     RABBIT("Rabbit Pelt", 8, false,
         c -> costMatches(c, ResourceType.BLOOD, 1, 2) || costMatches(c, ResourceType.BONES, 2, 3)),
     WOLF("Wolf Pelt", 8, false,
-        c -> costMatches(c, ResourceType.BLOOD, 3, 3) || costMatches(c, ResourceType.BONES, 4, 4)),
+        c -> costMatches(c, ResourceType.BLOOD, 1, 3) || costMatches(c, ResourceType.BONES, 1, 4)),
     SHEEP("Golden Sheep Pelt", 4, false,
         c -> costMatches(c, ResourceType.BLOOD, 4, 4) || costMatches(c, ResourceType.BONES, 6, Integer.MAX_VALUE)),
     FUSED_RABBIT("Fused Rabbit Pelt", 8, true, RABBIT.costFilter),

@@ -16,13 +16,16 @@ import java.util.function.Function;
  * costs the player's one remaining candle, ending the run immediately -
  * unlike a regular BattleNode, there's no continuing after a boss loss.
  * <p>
- * Right before the encounter begins (once, not per round), The Smoke is
- * placed directly into the player's hand - a permanent, near-worthless
- * card that's always available for the fight ahead, rather than being
- * shuffled into the deck where it might not be drawn for several turns.
- * dealOpeningHand() only ever adds cards on top of what's already in hand
- * (never clears it first), so this survives into round 1's actual opening
- * hand correctly.
+ * Right before the encounter begins (once, not per round), if the player
+ * had an extra candle to snuff (arrived with more than 1), The Smoke is
+ * placed directly into their hand - a permanent, near-worthless card
+ * representing that sacrificed life force, always available for the fight
+ * ahead rather than being shuffled into the deck where it might not be
+ * drawn for several turns. If the player was already down to their last
+ * candle, there's no extra life force to become The Smoke, so nothing is
+ * granted. dealOpeningHand() only ever adds cards on top of what's already
+ * in hand (never clears it first), so The Smoke survives into round 1's
+ * actual opening hand correctly whenever it is granted.
  * <p>
  * The opponent factory receives the player (fresh each round), so the
  * boss's deck can be sized against the player's current deck rather than
@@ -59,12 +62,12 @@ public class BossBattleNode implements NodeContent {
         if (player.getCandles() > 1) {
             context.getUI().show("As you face " + bossName + ", your extra candle is snuffed out - only one remains.");
             player.setCandles(1);
-        }
 
-        Card theSmoke = SpecialCardType.THE_SMOKE.create();
-        theSmoke.addSigil(new ConjuredMarker()); // granted for this boss fight specifically - shouldn't linger in the deck afterward
-        player.addToHand(theSmoke);
-        context.getUI().show("The Smoke settles into your hand, ready for what's ahead.");
+            Card theSmoke = SpecialCardType.THE_SMOKE.create();
+            theSmoke.addSigil(new ConjuredMarker()); // granted for this boss fight specifically - shouldn't linger in the deck afterward
+            player.addToHand(theSmoke);
+            context.getUI().show("The Smoke settles into your hand, ready for what's ahead.");
+        }
 
         for (int round = 1; round <= ROUNDS_TO_WIN; round++) {
             context.getUI().show("===== " + bossName + " - Round " + round + " of " + ROUNDS_TO_WIN + " =====");

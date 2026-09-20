@@ -2,6 +2,7 @@ package com.inscription.run.event;
 
 import com.inscription.model.Card;
 import com.inscription.model.CardType;
+import com.inscription.model.ResourceType;
 import com.inscription.pelt.PeltKind;
 import com.inscription.player.Player;
 import com.inscription.run.NodeContent;
@@ -33,10 +34,12 @@ import java.util.Random;
  * same eligible cards instead of plain ones - "same rules for market" as
  * its base kind, just fused cards.
  * <p>
- * The Wolf market specifically always includes one constructed card:
- * Rabbit-tier cost, with a random bonus sigil - a judgment call for how
- * many of the 8 slots this affects, since the reference sheet didn't
- * specify a count.
+ * The Wolf market's cost filter is a maximum, not an exact match - any
+ * card up to 3 Blood or up to 4 Bones qualifies, not just cards at exactly
+ * that cost. Any eligible card genuinely under that ceiling gets a random
+ * bonus sigil applied, to make up for being a lower tier than the pelt
+ * would normally command - a card already sitting exactly at the ceiling
+ * gets no bonus, since it's already a "true" Wolf-tier cost.
  * <p>
  * FINAL, CONFIRMED RULE STATEMENT (do not reintroduce the earlier, reverted
  * "free pelt purchase" behavior here - that belongs to BuyPeltsEvent, the
@@ -121,30 +124,24 @@ public class TradePeltsEvent implements NodeContent {
         int size = Math.min(kind.getMarketSize(), eligible.size());
         for (int i = 0; i < size; i++) {
             CardType type = eligible.get(i);
-            market.add(kind.isFused() ? Card.stitch(type.create(), type.create()) : type.create());
-        }
-
-        // Wolf-tier special: one slot is always a constructed cheap (Rabbit-tier cost) card with a random bonus sigil.
-        if (kind == PeltKind.WOLF) {
-            Card special = randomCheapCardWithSigil();
-            if (market.size() >= kind.getMarketSize() && !market.isEmpty()) {
-                market.set(market.size() - 1, special);
-            } else {
-                market.add(special);
+            Card card = kind.isFused() ? Card.stitch(type.create(), type.create()) : type.create();
+            if (kind.baseKind() == PeltKind.WOLF && isBelowWolfCeiling(card)) {
+                // Wolf's filter is a maximum, not an exact match - anything
+                // genuinely under the ceiling (3 Blood / 4 Bones) gets a
+                // random bonus sigil to make up for being a lower tier than
+                // the pelt would normally command.
+                card.addSigil(RandomizableSigils.randomExcluding(random, card));
             }
+            market.add(card);
         }
-
         return market;
     }
 
-    private Card randomCheapCardWithSigil() {
-        List<CardType> rabbitTierPool = Arrays.stream(CardType.values())
-            .filter(t -> t != CardType.DAM)
-            .filter(t -> PeltKind.RABBIT.matchesCostFilter(t.create()))
-            .toList();
-        CardType base = rabbitTierPool.get(random.nextInt(rabbitTierPool.size()));
-        Card card = base.create();
-        card.addSigil(RandomizableSigils.randomExcluding(random, card));
-        return card;
+    /** Whether a card's cost sits strictly below Wolf tier's ceiling (3 Blood or 4 Bones) - exactly at the ceiling gets no bonus, matching the original "true Wolf tier" cost. */
+    private boolean isBelowWolfCeiling(Card card) {
+        if (card.getCostType() == ResourceType.BLOOD) {
+            return card.getCost() < 3;
+        }
+        return card.getCost() < 4;
     }
 }

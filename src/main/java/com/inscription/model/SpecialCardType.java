@@ -1,5 +1,6 @@
 package com.inscription.model;
 
+import com.inscription.sigil.BoneKingSigil;
 import com.inscription.sigil.FrozenAwaySigil;
 import com.inscription.sigil.Sigil;
 import com.inscription.sigil.UnsacrificeableMarker;
@@ -27,7 +28,7 @@ public enum SpecialCardType {
 
     RABBIT("Rabbit", 0, 1, 0, ResourceType.BLOOD, List.of()),
 
-    THE_SMOKE("The Smoke", 0, 1, 0, ResourceType.BLOOD, List.of()),
+    THE_SMOKE("The Smoke", 0, 1, 0, ResourceType.BLOOD, List.of(BoneKingSigil::new)),
 
     /** The decoy Loose Tail leaves behind in its place when it escapes. */
     TAIL("Tail", 0, 1, 0, ResourceType.BLOOD, List.of(), true);

@@ -133,25 +133,52 @@ public class BuildTotemEvent implements NodeContent {
      * tribe or sigil twice, and nothing checked existing bodies at all.
      */
     private List<TotemPiece> generateThreeOptions(Player player) {
-        List<TotemPiece> eligible = new ArrayList<>();
-
+        List<TotemHead> eligibleHeads = new ArrayList<>();
         for (String tribe : KNOWN_TRIBES) {
             if (!player.hasHeadForTribe(tribe)) {
-                eligible.add(new TotemHead(tribe));
+                eligibleHeads.add(new TotemHead(tribe));
             }
         }
 
         List<String> heldBodySigilNames = player.getBodiesInInventory().stream()
             .map(TotemBody::getSigilName)
             .toList();
+        List<TotemBody> eligibleBodies = new ArrayList<>();
         for (Supplier<Sigil> sigilFactory : RandomizableSigils.POOL) {
             String sigilName = sigilFactory.get().getName();
             if (!heldBodySigilNames.contains(sigilName)) {
-                eligible.add(new TotemBody(sigilFactory));
+                eligibleBodies.add(new TotemBody(sigilFactory));
             }
         }
 
-        Collections.shuffle(eligible, random);
-        return eligible.subList(0, Math.min(3, eligible.size()));
+        Collections.shuffle(eligibleHeads, random);
+        Collections.shuffle(eligibleBodies, random);
+
+        // Guarantee at least one of each kind, whenever both pools actually
+        // have something available - a fully unconstrained shuffle of the
+        // combined pool can (and often does, since the bodies pool is much
+        // larger) land on all 3 being the same kind, offering no way to
+        // ever pick up the other kind that visit.
+        List<TotemPiece> options = new ArrayList<>();
+        if (!eligibleHeads.isEmpty()) {
+            options.add(eligibleHeads.remove(0));
+        }
+        if (!eligibleBodies.isEmpty()) {
+            options.add(eligibleBodies.remove(0));
+        }
+
+        List<TotemPiece> remainingPool = new ArrayList<>();
+        remainingPool.addAll(eligibleHeads);
+        remainingPool.addAll(eligibleBodies);
+        Collections.shuffle(remainingPool, random);
+        for (TotemPiece piece : remainingPool) {
+            if (options.size() >= 3) {
+                break;
+            }
+            options.add(piece);
+        }
+
+        Collections.shuffle(options, random); // don't always show the guaranteed head/body first
+        return options;
     }
 }
