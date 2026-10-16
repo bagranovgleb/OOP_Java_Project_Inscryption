@@ -1,5 +1,6 @@
 package com.inscryption.totem;
 
+import com.inscryption.model.Tribe;
 import com.inscryption.sigil.Sigil;
 
 /**
@@ -18,7 +19,7 @@ public class ActiveTotem {
         this.body = body;
     }
 
-    public String getTribe() {
+    public Tribe getTribe() {
         return head.getTribe();
     }
 
@@ -33,6 +34,6 @@ public class ActiveTotem {
 
     @Override
     public String toString() {
-        return "Totem [" + head.getTribe() + " tribe grants " + body.getSigilName() + "]";
+        return "Totem [" + head.getTribe().getDisplayName() + " tribe grants " + body.getSigilName() + "]";
     }
 }

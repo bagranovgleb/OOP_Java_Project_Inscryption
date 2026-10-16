@@ -70,6 +70,10 @@ import com.inscryption.sigil.TrifurcatedStrikeSigil;
 import com.inscryption.sigil.UnkillableSigil;
 import com.inscryption.sigil.WaterborneSigil;
 import com.inscryption.sigil.WorthySacrificeSigil;
+import com.inscryption.model.Tribe;
+import com.inscryption.sigil.ExtraSigilMarker;
+import com.inscryption.sigil.SharpQuillsSigil;
+import com.inscryption.sigil.TrinketBearerSigil;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -343,7 +347,7 @@ public class Main {
                 + "the Wolf was placed, survived, and is reclaimed back into hand when the battle ends",
             wp.getHand().stream().anyMatch(c -> c.getName().equals("Wolf")));
         check("Worthy Sacrifice: the Squirrel with Worthy Sacrifice was actually consumed (only one mark needed)",
-            wp.getHand().stream().noneMatch(c -> c.hasSigil("Worthy Sacrifice")));
+            wp.getHand().stream().noneMatch(c -> c.hasSigil(WorthySacrificeSigil.class)));
     }
 
     private static void healthScaleAndGoldenTeeth() {
@@ -582,7 +586,7 @@ public class Main {
         Card totemSquirrel = CardType.SQUIRREL.create();
         board.placeCard(true, 0, totemSquirrel);
         System.out.println("Before totem: " + totemSquirrel);
-        engine.addModifier(new SigilTotemModifier("Squirrel", 2, 0));
+        engine.addModifier(new SigilTotemModifier(Tribe.SQUIRREL, 2, 0));
         engine.applyModifiers();
         System.out.println("After totem:  " + totemSquirrel);
     }
@@ -876,8 +880,8 @@ public class Main {
         Player p2 = freshPlayer("P2", CardType.WOLF);
         new CardChoiceEvent(CardChoiceEvent.Mode.TRIBE).resolve(new RunContext(p2, scannerOf("0\n")));
         boolean hasTribeTag = drawAllAnimal(p2).stream().anyMatch(c ->
-            c.hasSigil("Avian") || c.hasSigil("Canine") || c.hasSigil("Hooved")
-                || c.hasSigil("Insect") || c.hasSigil("Reptile"));
+            c.hasTribe(Tribe.AVIAN) || c.hasTribe(Tribe.CANINE) || c.hasTribe(Tribe.HOOVED)
+                || c.hasTribe(Tribe.INSECT) || c.hasTribe(Tribe.REPTILE));
         check("Tribe: granted card actually has a tribe tag", hasTribeTag);
 
         // Cost: the granted card's cost matches the tier that was shown.
@@ -895,9 +899,9 @@ public class Main {
         new MysteriousStonesEvent().resolve(new RunContext(p, scannerOf("0\n0\n")));
         List<Card> hand = p.getHand();
         check("Porcupine consumed", hand.stream().noneMatch(c -> c.getName().equals("Porcupine")));
-        check("Geck gained Sharp Quills", hand.stream().anyMatch(c -> c.getName().equals("Geck") && c.hasSigil("Sharp Quills")));
+        check("Geck gained Sharp Quills", hand.stream().anyMatch(c -> c.getName().equals("Geck") && c.hasSigil(SharpQuillsSigil.class)));
         check("Geck now has 1 of its 2 allowed transfers",
-            hand.stream().anyMatch(c -> c.getName().equals("Geck") && c.hasSigil("Extra Sigil")));
+            hand.stream().anyMatch(c -> c.getName().equals("Geck") && c.hasSigil(ExtraSigilMarker.class)));
 
         // A plain card with no sigils at all is never even offered as a source.
         Player p2 = new Player("P2", new Deck(List.of()), new Deck(List.of()));
@@ -981,7 +985,7 @@ public class Main {
         new ProspectorEvent(fixedIntRandom(1)).resolve(new RunContext(p2, scannerOf("1\n")));
         check("Roll 1: no Golden Sheep Pelt gained", p2.getPeltCount(PeltKind.SHEEP) == 0);
         check("Roll 1: the granted reward genuinely carries the Insect tribe tag",
-            drawAllAnimal(p2).stream().anyMatch(c -> c.hasSigil("Insect")));
+            drawAllAnimal(p2).stream().anyMatch(c -> c.hasTribe(Tribe.INSECT)));
     }
 
     private static void buildTotemEvent() {
@@ -990,7 +994,7 @@ public class Main {
         // Cap enforcement: at 6 pieces, no more room, Amalgam fallback triggers.
         Player p1 = freshPlayer("P1", CardType.WOLF);
         for (int i = 0; i < 6; i++) {
-            p1.addTotemPiece(new com.inscryption.totem.TotemHead("Canine"));
+            p1.addTotemPiece(new com.inscryption.totem.TotemHead(Tribe.CANINE));
         }
         new BuildTotemEvent(new Random()).resolve(new RunContext(p1, scannerOf("")));
         check("At the cap: still exactly 6 pieces (no 7th added)", p1.getTotemPieces().size() == 6);
@@ -998,7 +1002,7 @@ public class Main {
 
         // No-duplicate-head rule: with all 5 tribes already headed, the newly offered piece must be a Body.
         Player p2 = freshPlayer("P2", CardType.WOLF);
-        for (String tribe : List.of("Avian", "Canine", "Hooved", "Insect", "Reptile")) {
+        for (Tribe tribe : List.of(Tribe.AVIAN, Tribe.CANINE, Tribe.HOOVED, Tribe.INSECT, Tribe.REPTILE)) {
             p2.addTotemPiece(new com.inscryption.totem.TotemHead(tribe));
         }
         new BuildTotemEvent(new Random()).resolve(new RunContext(p2, scannerOf("0\n0\n")));
@@ -1007,11 +1011,11 @@ public class Main {
 
         // Construction actually happens when eligible, using the chosen head+body, and consumes neither piece.
         Player p3 = freshPlayer("P3", CardType.WOLF);
-        p3.addTotemPiece(new com.inscryption.totem.TotemHead("Canine"));
+        p3.addTotemPiece(new com.inscryption.totem.TotemHead(Tribe.CANINE));
         p3.addTotemPiece(new com.inscryption.totem.TotemBody(com.inscryption.sigil.AirborneSigil::new));
         new BuildTotemEvent(new Random()).resolve(new RunContext(p3, scannerOf("0\n1\n0\n0\n")));
         check("Active totem was constructed for the Canine tribe",
-            p3.getActiveTotem() != null && p3.getActiveTotem().getTribe().equals("Canine"));
+            p3.getActiveTotem() != null && p3.getActiveTotem().getTribe() == Tribe.CANINE);
         check("Neither piece was consumed by construction", p3.getHeadsInInventory().size() >= 1 && p3.getBodiesInInventory().size() >= 1);
 
         // The real payoff: a matching-tribe creature genuinely gains the totem's sigil as a live ability.
@@ -1019,11 +1023,11 @@ public class Main {
         Player p4 = freshPlayer("P4", CardType.WOLF);
         Player o4 = freshPlayer("O4", CardType.WOLF);
         p4.setActiveTotem(new com.inscryption.totem.ActiveTotem(
-            new com.inscryption.totem.TotemHead("Canine"), new com.inscryption.totem.TotemBody(com.inscryption.sigil.AirborneSigil::new)));
+            new com.inscryption.totem.TotemHead(Tribe.CANINE), new com.inscryption.totem.TotemBody(com.inscryption.sigil.AirborneSigil::new)));
         GameEngine engine = new GameEngine(board, p4, o4);
         Card wolf = CardType.WOLF.create();
         engine.placeCard(true, 0, wolf);
-        check("A placed Wolf (Canine) genuinely gains Airborne as a real sigil", wolf.hasSigil("Airborne"));
+        check("A placed Wolf (Canine) genuinely gains Airborne as a real sigil", wolf.hasSigil(AirborneSigil.class));
         Card defender = CardType.MOOSE_BUCK.create();
         board.placeCard(false, 0, defender);
         engine.ringBell(true);
@@ -1034,12 +1038,12 @@ public class Main {
         Board board2 = new Board(4);
         Player p5 = freshPlayer("P5", CardType.WOLF);
         p5.setActiveTotem(new com.inscryption.totem.ActiveTotem(
-            new com.inscryption.totem.TotemHead("Canine"), new com.inscryption.totem.TotemBody(com.inscryption.sigil.AirborneSigil::new)));
+            new com.inscryption.totem.TotemHead(Tribe.CANINE), new com.inscryption.totem.TotemBody(com.inscryption.sigil.AirborneSigil::new)));
         GameEngine engine2 = new GameEngine(board2, p5, freshPlayer("O5", CardType.WOLF));
         Card magpie = CardType.MAGPIE.create(); // Avian, carries Hoarder natively - not Airborne
         engine2.placeCard(true, 0, magpie);
         check("A non-matching tribe (Avian Magpie) does not gain the Canine totem's sigil",
-            !magpie.hasSigil("Airborne"));
+            !magpie.hasSigil(AirborneSigil.class));
     }
 
     private static void gainConsumablesEvent() {
@@ -1116,7 +1120,7 @@ public class Main {
         Player o5 = freshPlayer("O5", CardType.WOLF);
         GameEngine engine5 = new GameEngine(board5, p5, o5);
         Card packRat = CardType.PACK_RAT.create();
-        check("Pack Rat carries Trinket Bearer", packRat.hasSigil("Trinket Bearer"));
+        check("Pack Rat carries Trinket Bearer", packRat.hasSigil(TrinketBearerSigil.class));
         engine5.placeCard(true, 0, packRat);
         check("Trinket Bearer: item granted on play", p5.getItems().size() == 1);
 
@@ -1225,11 +1229,11 @@ public class Main {
         Card hpExisting = CardType.WOLF.create();
         hpEngine.placeCard(true, 0, hpExisting);
         new HarpiesBirdlegFanItem().use(new ItemContext(hpEngine, hpBoard, hpp, hpo, scannerOf("")));
-        check("Harpie's Fan: existing card gained Airborne", hpExisting.hasSigil("Airborne"));
+        check("Harpie's Fan: existing card gained Airborne", hpExisting.hasSigil(AirborneSigil.class));
 
         Card hpLater = CardType.WOLF.create();
         hpEngine.placeCard(true, 1, hpLater);
-        check("Harpie's Fan: a card placed after using it is unaffected", !hpLater.hasSigil("Airborne"));
+        check("Harpie's Fan: a card placed after using it is unaffected", !hpLater.hasSigil(AirborneSigil.class));
 
         Card hpDefender = CardType.MOOSE_BUCK.create();
         hpBoard.placeCard(false, 0, hpDefender);
@@ -1238,7 +1242,7 @@ public class Main {
 
         hpEngine.startTurn(false);
         hpEngine.startTurn(true);
-        check("Harpie's Fan: Airborne correctly expires at the start of the next turn", !hpExisting.hasSigil("Airborne"));
+        check("Harpie's Fan: Airborne correctly expires at the start of the next turn", !hpExisting.hasSigil(AirborneSigil.class));
 
         // Fish Hook: steals an opposing card onto an empty own-side slot (built, deliberately not in the general pools).
         Board fhBoard = new Board(4);

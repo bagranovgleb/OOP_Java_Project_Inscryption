@@ -8,11 +8,14 @@ import com.inscryption.model.Card;
 import com.inscryption.model.CardType;
 import com.inscryption.model.DeckType;
 import com.inscryption.model.ResourceType;
+import com.inscryption.model.Tribe;
 import com.inscryption.pelt.PeltKind;
 import com.inscryption.totem.ActiveTotem;
 import com.inscryption.totem.TotemBody;
 import com.inscryption.totem.TotemHead;
 import com.inscryption.totem.TotemPiece;
+import com.inscryption.sigil.ConjuredMarker;
+import com.inscryption.sigil.ManyLivesSigil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -222,10 +225,10 @@ public class Player {
         List<Card> handCopy = new ArrayList<>(hand);
         for (Card card : handCopy) {
             hand.remove(card);
-            if (card.hasSigil("Conjured")) {
+            if (card.hasSigil(ConjuredMarker.class)) {
                 continue; // "in a bottle" item cards vanish rather than joining either deck
             }
-            if (card.hasSigil("Squirrel")) {
+            if (card.hasTribe(Tribe.SQUIRREL)) {
                 addToSquirrelDeck(card);
             } else {
                 addToAnimalDeck(card);
@@ -271,11 +274,11 @@ public class Player {
         totemPieces.add(piece);
     }
 
-    public boolean hasHeadForTribe(String tribe) {
+    public boolean hasHeadForTribe(Tribe tribe) {
         return totemPieces.stream()
             .filter(p -> p instanceof TotemHead)
             .map(p -> (TotemHead) p)
-            .anyMatch(h -> h.getTribe().equals(tribe));
+            .anyMatch(h -> h.getTribe() == tribe);
     }
 
     public List<TotemHead> getHeadsInInventory() {
@@ -344,7 +347,7 @@ public class Player {
         if (card == null) {
             throw new InvalidSacrificeException("No card to sacrifice");
         }
-        if (!card.hasSigil("Many Lives")) {
+        if (!card.hasSigil(ManyLivesSigil.class)) {
             card.sacrifice();
         }
         bones++;

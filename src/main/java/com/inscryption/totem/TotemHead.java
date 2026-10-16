@@ -1,20 +1,22 @@
 package com.inscryption.totem;
 
+import com.inscryption.model.Tribe;
+
 /** A totem head - defines which tribe an assembled totem applies to. */
 public class TotemHead implements TotemPiece {
 
-    private final String tribe;
+    private final Tribe tribe;
 
-    public TotemHead(String tribe) {
+    public TotemHead(Tribe tribe) {
         this.tribe = tribe;
     }
 
-    public String getTribe() {
+    public Tribe getTribe() {
         return tribe;
     }
 
     @Override
     public String describe() {
-        return "Head (" + tribe + ")";
+        return "Head (" + tribe.getDisplayName() + ")";
     }
 }

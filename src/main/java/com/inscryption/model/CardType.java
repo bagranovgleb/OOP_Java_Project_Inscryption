@@ -54,16 +54,11 @@ import java.util.function.Supplier;
  * direction unambiguous - defaulted both to RIGHT. Easy to flip later if
  * that's wrong.
  * <p>
- * TODO - still unresolved (icon meaning unclear, or the matching sigil isn't
- * built yet):
- * Hooved: Pronghorn (crescent+arrow, likely Sprinter-related - genuinely
- *   unclear whether it's a second Sprinter or something else).
- * Reptile: Rattler (icon unclear, needs a closer look).
- * Miscellaneous: River Otter
- *   (fin/wave-tail icon, meaning unconfirmed - close to Great White's
- *   Waterborne icon but not a confident enough match to commit to), Field
- *   Mice (boxed-mice icon, meaning unconfirmed - visually different enough
- *   from Fecundity's icon that it wasn't a confident match either).
+ * Resolved (confirmed against the reference sheet): Pronghorn carries both
+ * Sprinter and Bifurcated Strike; Rattler carries no special sigil beyond
+ * its Reptile tribe tag; River Otter's Waterborne and Field Mice's
+ * Fecundity (both already applied below) are confirmed correct, not just
+ * tentative guesses.
  * <p>
  * Excluded for now (too complex to implement yet): Stunted Wolf, Caged
  * Wolf, Long Elk, Strange Larva (and its further forms Strange Pupa and
@@ -73,7 +68,7 @@ import java.util.function.Supplier;
 public enum CardType {
 
     SQUIRREL("Squirrel", 0, 1, 0, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Squirrel"))),
+        List.of(() -> new TribeSigil(Tribe.SQUIRREL))),
 
     PORCUPINE("Porcupine", 1, 2, 1, ResourceType.BLOOD,
         List.of(SharpQuillsSigil::new)),
@@ -91,117 +86,120 @@ public enum CardType {
     // ----- Avian -----
 
     KINGFISHER("Kingfisher", 1, 1, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Avian"), WaterborneSigil::new, AirborneSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.AVIAN), WaterborneSigil::new, AirborneSigil::new)),
 
     RAVEN("Raven", 2, 3, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Avian"), AirborneSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.AVIAN), AirborneSigil::new)),
 
     RAVEN_EGG("Raven Egg", 0, 2, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Avian"), () -> new FledglingSigil(CardType.RAVEN::create))),
+        List.of(() -> new TribeSigil(Tribe.AVIAN), () -> new FledglingSigil(CardType.RAVEN::create))),
 
     SPARROW("Sparrow", 1, 2, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Avian"), AirborneSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.AVIAN), AirborneSigil::new)),
 
     MAGPIE("Magpie", 1, 1, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Avian"), HoarderSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.AVIAN), HoarderSigil::new)),
 
     TURKEY_VULTURE("Turkey Vulture", 3, 3, 8, ResourceType.BONES,
-        List.of(() -> new TribeSigil("Avian"), AirborneSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.AVIAN), AirborneSigil::new)),
 
     // ----- Canine -----
 
     WOLF("Wolf", 3, 2, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Canine"))),
+        List.of(() -> new TribeSigil(Tribe.CANINE))),
 
     WOLF_CUB("Wolf Cub", 1, 1, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Canine"), () -> new FledglingSigil(CardType.WOLF::create))),
+        List.of(() -> new TribeSigil(Tribe.CANINE), () -> new FledglingSigil(CardType.WOLF::create))),
 
     BLOODHOUND("Bloodhound", 2, 3, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Canine"), GuardianSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.CANINE), GuardianSigil::new)),
 
     COYOTE("Coyote", 2, 1, 4, ResourceType.BONES,
-        List.of(() -> new TribeSigil("Canine"))),
+        List.of(() -> new TribeSigil(Tribe.CANINE))),
 
     ALPHA("Alpha", 1, 2, 4, ResourceType.BONES,
-        List.of(() -> new TribeSigil("Canine"), LeaderSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.CANINE), LeaderSigil::new)),
 
     // ----- Hooved -----
 
     ELK("Elk", 2, 4, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Hooved"), () -> new SprinterSigil(SprinterSigil.RIGHT))),
+        List.of(() -> new TribeSigil(Tribe.HOOVED), () -> new SprinterSigil(SprinterSigil.RIGHT))),
 
     CHILD_13("Child 13", 0, 1, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Hooved"), ManyLivesSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.HOOVED), ManyLivesSigil::new)),
 
     BLACK_GOAT("Black Goat", 0, 1, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Hooved"), WorthySacrificeSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.HOOVED), WorthySacrificeSigil::new)),
 
     ELK_FAWN("Elk Fawn", 1, 1, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Hooved"), () -> new FledglingSigil(CardType.ELK::create))),
+        List.of(() -> new TribeSigil(Tribe.HOOVED), () -> new FledglingSigil(CardType.ELK::create))),
 
     PRONGHORN("Pronghorn", 1, 3, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Hooved"), () -> new SprinterSigil(SprinterSigil.RIGHT))),
+        List.of(() -> new TribeSigil(Tribe.HOOVED), () -> new SprinterSigil(SprinterSigil.RIGHT), BifurcatedStrikeSigil::new)),
 
     MOOSE_BUCK("Moose Buck", 3, 7, 3, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Hooved"), () -> new HeftySigil(HeftySigil.RIGHT))),
+        List.of(() -> new TribeSigil(Tribe.HOOVED), () -> new HeftySigil(HeftySigil.RIGHT))),
 
     // ----- Insect -----
 
     MANTIS_GOD("Mantis God", 1, 1, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Insect"), TrifurcatedStrikeSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.INSECT), TrifurcatedStrikeSigil::new)),
 
     BEE("Bee", 1, 1, 0, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Insect"), AirborneSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.INSECT), AirborneSigil::new)),
 
     BEEHIVE("Beehive", 0, 2, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Insect"), BeesWithinSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.INSECT), BeesWithinSigil::new)),
 
     MANTIS("Mantis", 1, 1, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Insect"), BifurcatedStrikeSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.INSECT), BifurcatedStrikeSigil::new)),
 
     RING_WORM("Ring Worm", 0, 1, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Insect"))),
+        List.of(() -> new TribeSigil(Tribe.INSECT))),
 
     WORKER_ANT("Worker Ant", 0, 2, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Insect"), () -> new TribeSigil("Ant"))),
+        List.of(() -> new TribeSigil(Tribe.INSECT), () -> new TribeSigil(Tribe.ANT))),
 
     ANT_QUEEN("Ant Queen", 0, 3, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Insect"), () -> new TribeSigil("Ant"), AntSpawnerSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.INSECT), () -> new TribeSigil(Tribe.ANT), AntSpawnerSigil::new)),
 
     COCKROACH("Cockroach", 1, 1, 4, ResourceType.BONES,
-        List.of(() -> new TribeSigil("Insect"), UnkillableSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.INSECT), UnkillableSigil::new)),
 
     CORPSE_MAGGOTS("Corpse Maggots", 1, 2, 5, ResourceType.BONES,
-        List.of(() -> new TribeSigil("Insect"), CorpseEaterSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.INSECT), CorpseEaterSigil::new)),
 
     // ----- Reptile -----
 
     GECK("Geck", 1, 1, 0, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Reptile"))),
+        List.of(() -> new TribeSigil(Tribe.REPTILE))),
 
     OUROBOROS("Ouroboros", 1, 1, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Reptile"), UnkillableSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.REPTILE), UnkillableSigil::new)),
 
     BULLFROG("Bullfrog", 1, 2, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Reptile"), MightyLeapSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.REPTILE), MightyLeapSigil::new)),
 
     SKINK("Skink", 1, 2, 1, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Reptile"), LooseTailSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.REPTILE), LooseTailSigil::new)),
 
     ADDER("Adder", 1, 1, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Reptile"), TouchOfDeathSigil::new)),
+        List.of(() -> new TribeSigil(Tribe.REPTILE), TouchOfDeathSigil::new)),
 
     RIVER_SNAPPER("River Snapper", 1, 6, 2, ResourceType.BLOOD,
-        List.of(() -> new TribeSigil("Reptile"))),
+        List.of(() -> new TribeSigil(Tribe.REPTILE))),
 
     RATTLER("Rattler", 3, 1, 6, ResourceType.BONES,
-        List.of(() -> new TribeSigil("Reptile"))),
+        List.of(() -> new TribeSigil(Tribe.REPTILE))),
 
     // ----- Miscellaneous (no tribe) -----
 
     MOLE_MAN("Mole Man", 0, 6, 1, ResourceType.BLOOD, List.of(MightyLeapSigil::new, BurrowerSigil::new)),
 
-    AMALGAM("Amalgam", 3, 3, 2, ResourceType.BLOOD, List.of()),
+    AMALGAM("Amalgam", 3, 3, 2, ResourceType.BLOOD,
+        List.of(() -> new TribeSigil(Tribe.AVIAN), () -> new TribeSigil(Tribe.CANINE), () -> new TribeSigil(Tribe.HOOVED),
+            () -> new TribeSigil(Tribe.INSECT), () -> new TribeSigil(Tribe.REPTILE), () -> new TribeSigil(Tribe.SQUIRREL),
+            () -> new TribeSigil(Tribe.ANT))),
 
     PACK_RAT("Pack Rat", 2, 2, 2, ResourceType.BLOOD, List.of(TrinketBearerSigil::new)),
 
@@ -234,7 +232,7 @@ public enum CardType {
     // ----- Obstacles (spawned by sigils, not drawn/paid for like ordinary
     // cards - cost is 0 since nobody ever pays it directly) -----
 
-    DAM("Dam", 0, 2, 0, ResourceType.BLOOD, List.of(), true);
+    DAM("Dam", 0, 2, 0, ResourceType.BLOOD, List.of());
 
     // Add new ordinary cards as one line above - name, attack, health, cost,
     // costType, then a list of Sigil suppliers (identity tags and/or
@@ -246,37 +244,27 @@ public enum CardType {
     private final int cost;
     private final ResourceType costType;
     private final List<Supplier<Sigil>> sigilFactories;
-    private final boolean isObstacle;
 
     CardType(String cardName, int attack, int health, int cost, ResourceType costType,
              List<Supplier<Sigil>> sigilFactories) {
-        this(cardName, attack, health, cost, costType, sigilFactories, false);
-    }
-
-    /** Used only by obstacle entries (see Dam) - builds an ObstacleCard instead of a plain Card. */
-    CardType(String cardName, int attack, int health, int cost, ResourceType costType,
-             List<Supplier<Sigil>> sigilFactories, boolean isObstacle) {
         this.cardName = cardName;
         this.attack = attack;
         this.health = health;
         this.cost = cost;
         this.costType = costType;
         this.sigilFactories = sigilFactories;
-        this.isObstacle = isObstacle;
     }
 
     /**
      * Builds a fresh Card instance for this catalog entry. Each call gets its
      * own independent Sigil objects (important - sigils like Diver carry
      * per-card state, so two of the same card must not share one sigil
-     * instance). An obstacle entry builds an ObstacleCard instead of a plain
-     * Card - a real subclass, not just attack=0 by convention.
+     * instance). Zero-attack obstacles are ordinary cards: if another
+     * effect raises their attack, they participate in combat normally.
      */
     public Card create() {
-        Card card = isObstacle
-            ? new ObstacleCard(cardName, health, cost, costType)
-            : new Card(cardName, attack, health, cost, costType);
-        card.sourceType = this;
+        Card card = new Card(cardName, attack, health, cost, costType);
+        card.setSourceType(this);
         for (Supplier<Sigil> factory : sigilFactories) {
             card.addSigil(factory.get());
         }

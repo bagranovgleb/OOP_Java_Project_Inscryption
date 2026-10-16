@@ -54,12 +54,14 @@ public class JavaFXGameUI implements GameUI {
     private final VBox choiceArea;
     private final GridPane boardArea;
     private final Label bonesLabel;
+    private final Label totemLabel;
 
-    public JavaFXGameUI(VBox outputArea, VBox choiceArea, GridPane boardArea, Label bonesLabel) {
+    public JavaFXGameUI(VBox outputArea, VBox choiceArea, GridPane boardArea, Label bonesLabel, Label totemLabel) {
         this.outputArea = outputArea;
         this.choiceArea = choiceArea;
         this.boardArea = boardArea;
         this.bonesLabel = bonesLabel;
+        this.totemLabel = totemLabel;
     }
 
     private static final String HEADER_MARKER = "##########";
@@ -132,6 +134,11 @@ public class JavaFXGameUI implements GameUI {
     @Override
     public void updateBones(int amount) {
         Platform.runLater(() -> bonesLabel.setText("Bones: " + amount));
+    }
+
+    @Override
+    public void updateTotem(String description) {
+        Platform.runLater(() -> totemLabel.setText(description));
     }
 
     private Label laneHeader(String text) {

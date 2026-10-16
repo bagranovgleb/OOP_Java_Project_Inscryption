@@ -2,22 +2,20 @@ package com.inscryption.modifier;
 
 import com.inscryption.engine.GameContext;
 import com.inscryption.model.Card;
+import com.inscryption.model.Tribe;
 
 /**
- * A totem-style modifier: buffs every card on the player's board that carries
- * a specific sigil (e.g. "Squirrel"). This is exactly why tribe sigils
- * exist - the modifier doesn't know or care that a Squirrel is tagged as
- * such via a TribeSigil rather than being a dedicated Java class,
- * it just asks each card "do you have this sigil" and buffs it if so.
+ * Blueprint modifier that buffs every player card belonging to one tribe.
+ * Tribe identity is typed, so the rule does not depend on display-name text.
  */
 public class SigilTotemModifier implements ChallengeModifier {
 
-    private final String targetSigilName;
+    private final Tribe targetTribe;
     private final int attackBonus;
     private final int healthBonus;
 
-    public SigilTotemModifier(String targetSigilName, int attackBonus, int healthBonus) {
-        this.targetSigilName = targetSigilName;
+    public SigilTotemModifier(Tribe targetTribe, int attackBonus, int healthBonus) {
+        this.targetTribe = targetTribe;
         this.attackBonus = attackBonus;
         this.healthBonus = healthBonus;
     }
@@ -26,7 +24,7 @@ public class SigilTotemModifier implements ChallengeModifier {
     public void apply(GameContext context) {
         for (var slot : context.getBoard().getPlayerSlots()) {
             Card occupant = slot.getOccupant();
-            if (occupant != null && occupant.hasSigil(targetSigilName)) {
+            if (occupant != null && occupant.hasTribe(targetTribe)) {
                 if (attackBonus > 0) {
                     occupant.buffAttack(attackBonus);
                 }
@@ -44,6 +42,6 @@ public class SigilTotemModifier implements ChallengeModifier {
 
     @Override
     public String getName() {
-        return "Totem: " + targetSigilName;
+        return "Totem: " + targetTribe.getDisplayName();
     }
 }

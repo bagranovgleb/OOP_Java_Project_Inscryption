@@ -80,4 +80,15 @@ public interface GameUI {
      */
     default void updateBones(int amount) {
     }
+
+    /**
+     * Shows the player's current active totem (head tribe + granted sigil),
+     * live, whenever it changes - or that none is built yet. Default
+     * implementation is a no-op, matching updateBones() - the console
+     * doesn't need a persistent display for this. A GUI implementation
+     * with a real, persistent totem display near the board should override
+     * this and update that in place.
+     */
+    default void updateTotem(String description) {
+    }
 }

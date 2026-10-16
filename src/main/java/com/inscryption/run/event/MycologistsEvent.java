@@ -9,6 +9,7 @@ import com.inscryption.run.RunContext;
 import java.util.ArrayList;
 import java.util.List;
 import com.inscryption.util.GameRandom;
+import com.inscryption.model.Tribe;
 import java.util.Random;
 
 /**
@@ -134,11 +135,11 @@ public class MycologistsEvent implements NodeContent {
     private List<int[]> findMatchingAnimalPairs(List<Card> hand) {
         List<int[]> pairs = new ArrayList<>();
         for (int i = 0; i < hand.size(); i++) {
-            if (hand.get(i).hasSigil("Squirrel")) {
+            if (hand.get(i).hasTribe(Tribe.SQUIRREL)) {
                 continue;
             }
             for (int j = i + 1; j < hand.size(); j++) {
-                if (hand.get(j).hasSigil("Squirrel")) {
+                if (hand.get(j).hasTribe(Tribe.SQUIRREL)) {
                     continue;
                 }
                 if (hand.get(i).getName().equals(hand.get(j).getName())) {
@@ -153,7 +154,7 @@ public class MycologistsEvent implements NodeContent {
     private List<Card> animalCardsWithSourceType(List<Card> hand) {
         List<Card> eligible = new ArrayList<>();
         for (Card card : hand) {
-            if (!card.hasSigil("Squirrel") && card.getSourceType() != null) {
+            if (!card.hasTribe(Tribe.SQUIRREL) && card.getSourceType() != null) {
                 eligible.add(card);
             }
         }

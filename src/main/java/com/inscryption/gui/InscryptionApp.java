@@ -47,7 +47,10 @@ public class InscryptionApp extends Application {
         Label bonesLabel = new Label("Bones: 0");
         bonesLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8 8 0 8;");
 
-        VBox topArea = new VBox(bonesLabel, boardArea);
+        Label totemLabel = new Label("No active totem");
+        totemLabel.setStyle("-fx-font-style: italic; -fx-padding: 2 8 0 8;");
+
+        VBox topArea = new VBox(bonesLabel, totemLabel, boardArea);
 
         VBox outputArea = new VBox(4);
         outputArea.setPadding(new Insets(8));
@@ -70,7 +73,7 @@ public class InscryptionApp extends Application {
         stage.setTitle("Inscryption");
         stage.show();
 
-        JavaFXGameUI ui = new JavaFXGameUI(outputArea, choiceArea, boardArea, bonesLabel);
+        JavaFXGameUI ui = new JavaFXGameUI(outputArea, choiceArea, boardArea, bonesLabel, totemLabel);
 
         // Game logic runs on its own background thread - it's written as one long
         // blocking sequence (see JavaFXGameUI's note on why), which would freeze the

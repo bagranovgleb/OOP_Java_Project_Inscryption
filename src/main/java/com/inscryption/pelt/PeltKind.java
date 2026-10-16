@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 public enum PeltKind {
 
     RABBIT("Rabbit Pelt", 8, false,
-        c -> costMatches(c, ResourceType.BLOOD, 1, 2) || costMatches(c, ResourceType.BONES, 2, 3)),
+        c -> costMatches(c, ResourceType.BLOOD, 0, 2) || costMatches(c, ResourceType.BONES, 2, 3)),
     WOLF("Wolf Pelt", 8, false,
         c -> costMatches(c, ResourceType.BLOOD, 1, 3) || costMatches(c, ResourceType.BONES, 1, 4)),
     SHEEP("Golden Sheep Pelt", 4, false,

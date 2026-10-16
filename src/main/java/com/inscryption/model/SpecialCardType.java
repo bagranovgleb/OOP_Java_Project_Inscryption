@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  */
 public enum SpecialCardType {
 
-    BOULDER("Boulder", 0, 5, 0, ResourceType.BLOOD, List.of(UnsacrificeableMarker::new), true),
+    BOULDER("Boulder", 0, 5, 0, ResourceType.BLOOD, List.of(UnsacrificeableMarker::new)),
 
     FROZEN_OPOSSUM("Frozen Opossum", 0, 5, 0, ResourceType.BLOOD,
         List.of(() -> new FrozenAwaySigil(CardType.OPOSSUM::create), UnsacrificeableMarker::new)),
@@ -31,7 +31,7 @@ public enum SpecialCardType {
     THE_SMOKE("The Smoke", 0, 1, 0, ResourceType.BLOOD, List.of(BoneKingSigil::new)),
 
     /** The decoy Loose Tail leaves behind in its place when it escapes. */
-    TAIL("Tail", 0, 1, 0, ResourceType.BLOOD, List.of(), true);
+    TAIL("Tail", 0, 1, 0, ResourceType.BLOOD, List.of());
 
     private final String cardName;
     private final int attack;
@@ -39,36 +39,27 @@ public enum SpecialCardType {
     private final int cost;
     private final ResourceType costType;
     private final List<Supplier<Sigil>> sigilFactories;
-    private final boolean isObstacle;
 
     SpecialCardType(String cardName, int attack, int health, int cost, ResourceType costType,
                      List<Supplier<Sigil>> sigilFactories) {
-        this(cardName, attack, health, cost, costType, sigilFactories, false);
-    }
-
-    /** Used only by obstacle entries (Boulder, Tail) - builds an ObstacleCard instead of a plain Card. */
-    SpecialCardType(String cardName, int attack, int health, int cost, ResourceType costType,
-                     List<Supplier<Sigil>> sigilFactories, boolean isObstacle) {
         this.cardName = cardName;
         this.attack = attack;
         this.health = health;
         this.cost = cost;
         this.costType = costType;
         this.sigilFactories = sigilFactories;
-        this.isObstacle = isObstacle;
     }
 
     /**
      * Builds a fresh Card instance for this catalog entry. Unlike
      * CardType.create(), this does not set Card.sourceType - a "make a copy
      * of me" sigil (e.g. Unkillable) simply isn't supported on a special
-     * card yet, since none of these currently need it. An obstacle entry
-     * builds an ObstacleCard instead of a plain Card.
+     * card yet, since none of these currently need it. Zero-attack board
+     * occupants remain ordinary cards and can attack if another effect buffs
+     * their attack above zero.
      */
     public Card create() {
-        Card card = isObstacle
-            ? new ObstacleCard(cardName, health, cost, costType)
-            : new Card(cardName, attack, health, cost, costType);
+        Card card = new Card(cardName, attack, health, cost, costType);
         for (Supplier<Sigil> factory : sigilFactories) {
             card.addSigil(factory.get());
         }

@@ -10,6 +10,7 @@ import com.inscryption.run.RunContext;
 import java.util.Arrays;
 import java.util.List;
 import com.inscryption.util.GameRandom;
+import com.inscryption.model.Tribe;
 import java.util.Random;
 
 /**
@@ -57,7 +58,7 @@ public class ProspectorEvent implements NodeContent {
 
     private Card randomInsectReward() {
         List<CardType> insectPool = Arrays.stream(CardType.values())
-            .filter(t -> t.create().hasSigil("Insect"))
+            .filter(t -> t.create().hasTribe(Tribe.INSECT))
             .toList();
         return insectPool.get(random.nextInt(insectPool.size())).create();
     }

@@ -3,6 +3,7 @@ package com.inscryption.run.event;
 import com.inscryption.model.Card;
 import com.inscryption.model.CardType;
 import com.inscryption.model.ResourceType;
+import com.inscryption.model.Tribe;
 import com.inscryption.run.NodeContent;
 import com.inscryption.run.RunContext;
 
@@ -27,7 +28,7 @@ public class CardChoiceEvent implements NodeContent {
 
     public enum Mode { PLAIN, TRIBE, COST }
 
-    private static final List<String> KNOWN_TRIBES = List.of("Avian", "Canine", "Hooved", "Insect", "Reptile");
+    private static final List<Tribe> KNOWN_TRIBES = List.of(Tribe.AVIAN, Tribe.CANINE, Tribe.HOOVED, Tribe.INSECT, Tribe.REPTILE);
 
     private final Mode mode;
     private final Random random = new Random();
@@ -63,10 +64,11 @@ public class CardChoiceEvent implements NodeContent {
     }
 
     private void resolveTribe(RunContext context) {
-        List<String> tribes = pickDistinctTribes(3);
-        int choice = context.getUI().askChoice("Choose a tribe (the specific card is a surprise until after you pick):", tribes);
-        String chosenTribe = tribes.get(choice);
-        CardType reward = randomCardTypeMatching(t -> t.create().hasSigil(chosenTribe));
+        List<Tribe> tribes = pickDistinctTribes(3);
+        List<String> tribeLabels = tribes.stream().map(Tribe::getDisplayName).toList();
+        int choice = context.getUI().askChoice("Choose a tribe (the specific card is a surprise until after you pick):", tribeLabels);
+        Tribe chosenTribe = tribes.get(choice);
+        CardType reward = randomCardTypeMatching(t -> t.create().hasTribe(chosenTribe));
         Card card = reward.create();
         context.getUI().show("Revealed: " + card);
         grantCard(context, card);
@@ -94,8 +96,8 @@ public class CardChoiceEvent implements NodeContent {
         return pool.subList(0, Math.min(count, pool.size()));
     }
 
-    private List<String> pickDistinctTribes(int count) {
-        List<String> tribes = new ArrayList<>(KNOWN_TRIBES);
+    private List<Tribe> pickDistinctTribes(int count) {
+        List<Tribe> tribes = new ArrayList<>(KNOWN_TRIBES);
         Collections.shuffle(tribes, random);
         return tribes.subList(0, Math.min(count, tribes.size()));
     }
@@ -115,10 +117,10 @@ public class CardChoiceEvent implements NodeContent {
         return matches.get(random.nextInt(matches.size()));
     }
 
-    /** Every ordinary card except Dam, which is a sigil-spawned obstacle, not a real reward. */
+    /** Every ordinary card except Dam (a sigil-spawned obstacle) and Squirrel (a special, separate-deck resource, not a normal reward). */
     private List<CardType> rewardPool() {
         return Arrays.stream(CardType.values())
-            .filter(t -> t != CardType.DAM)
+            .filter(t -> t != CardType.DAM && t != CardType.SQUIRREL)
             .toList();
     }
 

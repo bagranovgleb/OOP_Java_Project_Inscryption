@@ -115,7 +115,7 @@ public class TradePeltsEvent implements NodeContent {
 
     private List<Card> generateMarket(PeltKind kind) {
         List<CardType> eligible = new ArrayList<>(Arrays.stream(CardType.values())
-            .filter(t -> t != CardType.DAM)
+            .filter(t -> t != CardType.DAM && t != CardType.SQUIRREL)
             .filter(t -> kind.matchesCostFilter(t.create()))
             .toList());
         Collections.shuffle(eligible, random);

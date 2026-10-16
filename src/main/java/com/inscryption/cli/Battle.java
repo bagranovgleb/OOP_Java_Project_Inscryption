@@ -18,6 +18,9 @@ import com.inscryption.ui.BoardSnapshot;
 import com.inscryption.ui.ConsoleGameUI;
 import com.inscryption.ui.GameUI;
 import com.inscryption.util.GameRandom;
+import com.inscryption.sigil.UnsacrificeableMarker;
+import com.inscryption.sigil.WorthySacrificeSigil;
+import com.inscryption.sigil.ManyLivesSigil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -485,7 +488,7 @@ public class Battle {
             List<Integer> availableLanes = new ArrayList<>();
             for (int i = 0; i < playerSlots.length; i++) {
                 Card occupant = playerSlots[i].getOccupant();
-                if (occupant != null && !marked.contains(i) && !occupant.hasSigil("Unsacrificeable")) {
+                if (occupant != null && !marked.contains(i) && !occupant.hasSigil(UnsacrificeableMarker.class)) {
                     availableLanes.add(i);
                 }
             }
@@ -511,7 +514,7 @@ public class Battle {
             int lane = availableLanes.get(choice);
             marked.add(lane);
             Card occupant = playerSlots[lane].getOccupant();
-            markedTotal += occupant.hasSigil("Worthy Sacrifice") ? 3 : 1;
+            markedTotal += occupant.hasSigil(WorthySacrificeSigil.class) ? 3 : 1;
         }
 
         for (int lane : marked) {
@@ -639,6 +642,8 @@ public class Battle {
 
         ui.updateBoard(new BoardSnapshot(playerLanes, opponentAttackingLanes, opponentReserveLanes));
         ui.updateBones(player.getBones());
+        var activeTotem = player.getActiveTotem();
+        ui.updateTotem(activeTotem != null ? activeTotem.toString() : "No active totem");
     }
 
     private String describeSlot(ReadOnlySlot slot) {
@@ -805,7 +810,7 @@ public class Battle {
     private boolean hasSacrificeableLane() {
         for (ReadOnlySlot slot : board.getPlayerSlots()) {
             Card occupant = slot.getOccupant();
-            if (occupant != null && !occupant.hasSigil("Many Lives")) {
+            if (occupant != null && !occupant.hasSigil(ManyLivesSigil.class)) {
                 return true;
             }
         }

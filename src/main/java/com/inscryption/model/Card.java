@@ -9,8 +9,8 @@ import java.util.List;
 /**
  * Base class for every creature card in the game.
  * <p>
- * Encapsulation: attack/health bookkeeping is private/protected state that can
- * only be changed through the methods below (takeDamage, heal, sacrifice, move) -
+ * Encapsulation: card state is private and can only be observed or changed
+ * through the methods below (getters, takeDamage, heal, sacrifice, move, buffs) -
  * nothing outside this class can mutate health directly.
  * <p>
  * Abstraction: callers (the engine, sigils) never need to know which concrete
@@ -19,13 +19,13 @@ import java.util.List;
  */
 public class Card {
 
-    protected final String name;
-    protected int attack;
-    protected int health;
-    protected int maxHealth;
-    protected boolean exhausted;
-    protected final int cost;
-    protected final ResourceType costType;
+    private final String name;
+    private int attack;
+    private int health;
+    private int maxHealth;
+    private boolean exhausted;
+    private final int cost;
+    private final ResourceType costType;
 
     /**
      * Which catalog entry this card was built from, if any - set directly by
@@ -34,7 +34,7 @@ public class Card {
      * built ad hoc outside the catalog (e.g. in tests), which simply can't
      * support "make a copy of me" sigils.
      */
-    CardType sourceType;
+    private CardType sourceType;
 
     private final List<Sigil> sigils = new ArrayList<>();
 
@@ -79,13 +79,36 @@ public class Card {
     }
 
     /**
-     * Generic identity/effect check by sigil name, so code like totem modifiers
-     * can ask "does this card carry sigil X" without an instanceof chain over
-     * concrete card subclasses.
+     * Type-safe ability query. Subclasses count as the same ability family,
+     * which is important for temporary variants such as TemporaryAirborneSigil.
      */
-    public boolean hasSigil(String sigilName) {
+    public boolean hasSigil(Class<? extends Sigil> sigilType) {
         for (Sigil sigil : sigils) {
-            if (sigil.getName().equals(sigilName)) {
+            if (sigilType.isInstance(sigil)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Returns whether this card carries the given hidden tribe tag. */
+    public boolean hasTribe(Tribe tribe) {
+        for (Sigil sigil : sigils) {
+            if (sigil instanceof com.inscryption.sigil.TribeSigil tribeSigil
+                && tribeSigil.getTribe() == tribe) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Semantic duplicate check used when composing cards or granting a totem
+     * sigil. It avoids coupling identity to the user-facing sigil name.
+     */
+    public boolean hasSameSigilKind(Sigil candidate) {
+        for (Sigil sigil : sigils) {
+            if (sigil.sameKindAs(candidate) || candidate.sameKindAs(sigil)) {
                 return true;
             }
         }
@@ -121,6 +144,11 @@ public class Card {
     /** Which CardType this card was built from, or null if built ad hoc. */
     public CardType getSourceType() {
         return sourceType;
+    }
+
+    /** Package-level construction hook used only by CardType.create(). */
+    void setSourceType(CardType sourceType) {
+        this.sourceType = sourceType;
     }
 
     public boolean isExhausted() {
@@ -257,19 +285,6 @@ public class Card {
     }
 
     /**
-     * Combines two cards into one: attack and max health are the sum of
-     * both, and every sigil from both originals carries over onto the
-     * result (duplicates included - e.g. two Squirrels would produce a card
-     * with two "Squirrel" tribe tags, which is harmless since hasSigil()
-     * only cares whether a name is present, not how many times). The
-     * result's name, cost, and cost type come from the first card - callers
-     * combining two copies of "the same card" (the Mycologists event) won't
-     * notice, since both are identical anyway.
-     * <p>
-     * The result has no sourceType (same limitation as any ad-hoc card) -
-     * a "make a copy of me" sigil wouldn't work on a stitched card.
-     */
-    /**
      * Fuses two cards into one: combined attack, combined health, and the
      * union of their sigils - not a concatenation. Fusing two copies of the
      * same card (e.g. two Mantis Gods) is a real, common case, and their
@@ -279,14 +294,14 @@ public class Card {
     public static Card stitch(Card a, Card b) {
         int combinedAttack = a.getAttack() + b.getAttack();
         int combinedHealth = a.getMaxHealth() + b.getMaxHealth();
-        Card result = new Card(a.name, combinedAttack, combinedHealth, a.cost, a.costType);
+        Card result = new Card(a.getName(), combinedAttack, combinedHealth, a.getCost(), a.getCostType());
         for (Sigil sigil : a.getSigils()) {
-            if (!result.hasSigil(sigil.getName())) {
+            if (!result.hasSameSigilKind(sigil)) {
                 result.addSigil(sigil);
             }
         }
         for (Sigil sigil : b.getSigils()) {
-            if (!result.hasSigil(sigil.getName())) {
+            if (!result.hasSameSigilKind(sigil)) {
                 result.addSigil(sigil);
             }
         }

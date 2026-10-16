@@ -1,6 +1,7 @@
 package com.inscryption.board;
 
 import com.inscryption.model.Card;
+import com.inscryption.sigil.ConjuredMarker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -149,7 +150,7 @@ public class Board {
         for (Slot slot : slots) {
             Card occupant = slot.getOccupant();
             if (occupant != null && !occupant.isAlive()) {
-                if (isPlayerSide && !occupant.hasSigil("Conjured")) {
+                if (isPlayerSide && !occupant.hasSigil(ConjuredMarker.class)) {
                     // A Conjured card was never meant to persist into the deck
                     // regardless - no point capturing it into the graveyard
                     // just to discard it again at the final reshuffle step.

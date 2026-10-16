@@ -3,24 +3,25 @@ package com.inscryption.sigil;
 import com.inscryption.engine.GameContext;
 import com.inscryption.model.Card;
 import com.inscryption.model.GameEvent;
+import com.inscryption.model.Tribe;
 
 /**
- * Marks a card as belonging to a tribe (e.g. "Wolf", "Squirrel", "Avian").
- * Does nothing on its own - no on-attack, on-death, or targeting effect - it
- * exists purely so totem-style modifiers can find "every card of tribe X"
- * via {@code card.hasSigil(name)}. Hidden from the normal sigil UI since it
- * has no visible effect.
- * <p>
- * One reusable class instead of a dedicated WolfSigil/SquirrelSigil/etc. per
- * tribe - the tribe name is data, not behavior, so it doesn't need its own
- * class.
+ * Hidden metadata marking a card as belonging to a tribe. Tribe identity is
+ * represented by the {@link Tribe} enum rather than display-name strings, so
+ * totems and other rules can query it safely without depending on UI text.
+ * One reusable class is sufficient because the tribe varies as data, not as
+ * behavior.
  */
 public class TribeSigil implements Sigil {
 
-    private final String tribeName;
+    private final Tribe tribe;
 
-    public TribeSigil(String tribeName) {
-        this.tribeName = tribeName;
+    public TribeSigil(Tribe tribe) {
+        this.tribe = tribe;
+    }
+
+    public Tribe getTribe() {
+        return tribe;
     }
 
     @Override
@@ -35,6 +36,11 @@ public class TribeSigil implements Sigil {
 
     @Override
     public String getName() {
-        return tribeName;
+        return tribe.getDisplayName();
+    }
+
+    @Override
+    public boolean sameKindAs(Sigil other) {
+        return other instanceof TribeSigil tribeSigil && tribeSigil.tribe == tribe;
     }
 }

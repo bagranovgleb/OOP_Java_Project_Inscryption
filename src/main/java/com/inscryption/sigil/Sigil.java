@@ -19,6 +19,15 @@ public interface Sigil {
     String getName();
 
     /**
+     * Stable semantic identity used when code needs to avoid adding the same
+     * sigil twice. Most sigils are identified by their concrete class.
+     * Parameterized sigils such as TribeSigil can override this relation.
+     */
+    default boolean sameKindAs(Sigil other) {
+        return other != null && getClass().equals(other.getClass());
+    }
+
+    /**
      * Whether this sigil currently prevents its owner from being targeted
      * (e.g. Waterborne). Default: never blocks targeting.
      */
@@ -27,10 +36,9 @@ public interface Sigil {
     }
 
     /**
-     * Identity sigils (e.g. "Squirrel") mark what a card fundamentally is so
-     * totem-style modifiers can check for them generically via
-     * {@code Card.hasSigil(name)} instead of an instanceof chain - but they carry
-     * no active effect and shouldn't clutter the card's UI. Default: shown normally.
+     * Hidden identity metadata (for example tribe or Conjured markers) can
+     * participate in game rules without cluttering the card's UI. Default:
+     * shown normally.
      */
     default boolean isHidden() {
         return false;

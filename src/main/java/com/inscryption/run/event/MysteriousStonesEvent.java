@@ -8,7 +8,6 @@ import com.inscryption.sigil.ExtraSigilMarker;
 import com.inscryption.sigil.Sigil;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Mysterious Stones: sacrifice a card from hand - only cards that actually
@@ -42,7 +41,7 @@ public class MysteriousStonesEvent implements NodeContent {
             return true;
         }
 
-        List<String> sourceTexts = sources.stream().map(this::describeWithSigils).toList();
+        List<String> sourceTexts = sources.stream().map(Card::toString).toList();
         int sourceIndex = context.getUI().askChoice("Choose a card to sacrifice (its sigils will transfer):", sourceTexts);
         Card source = sources.get(sourceIndex);
 
@@ -72,16 +71,11 @@ public class MysteriousStonesEvent implements NodeContent {
 
     /** How many Mysterious Stones transfers this card has already received. */
     private int transferCount(Card card) {
-        return (int) card.getSigils().stream().filter(s -> s.getName().equals("Extra Sigil")).count();
+        return (int) card.getSigils().stream().filter(s -> s instanceof ExtraSigilMarker).count();
     }
 
     /** A card's meaningful sigils - hidden identity tags (tribes) don't count as "having a sigil" for this event, only real described abilities like Sharp Quills do. The internal ExtraSigilMarker is excluded too, for the same reason. */
     private List<Sigil> realSigils(Card card) {
-        return card.getVisibleSigils().stream().filter(s -> !s.getName().equals("Extra Sigil")).toList();
-    }
-
-    private String describeWithSigils(Card card) {
-        String sigilNames = realSigils(card).stream().map(Sigil::getName).collect(Collectors.joining(", "));
-        return card + " [sigils: " + sigilNames + "]";
+        return card.getVisibleSigils().stream().filter(s -> !(s instanceof ExtraSigilMarker)).toList();
     }
 }

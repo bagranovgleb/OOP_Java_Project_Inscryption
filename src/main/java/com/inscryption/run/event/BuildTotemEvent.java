@@ -2,6 +2,7 @@ package com.inscryption.run.event;
 
 import com.inscryption.model.Card;
 import com.inscryption.model.CardType;
+import com.inscryption.model.Tribe;
 import com.inscryption.player.Player;
 import com.inscryption.run.NodeContent;
 import com.inscryption.run.RunContext;
@@ -38,7 +39,7 @@ import java.util.function.Supplier;
  */
 public class BuildTotemEvent implements NodeContent {
 
-    private static final List<String> KNOWN_TRIBES = List.of("Avian", "Canine", "Hooved", "Insect", "Reptile");
+    private static final List<Tribe> KNOWN_TRIBES = List.of(Tribe.AVIAN, Tribe.CANINE, Tribe.HOOVED, Tribe.INSECT, Tribe.REPTILE);
 
     private final Random random;
 
@@ -134,7 +135,7 @@ public class BuildTotemEvent implements NodeContent {
      */
     private List<TotemPiece> generateThreeOptions(Player player) {
         List<TotemHead> eligibleHeads = new ArrayList<>();
-        for (String tribe : KNOWN_TRIBES) {
+        for (Tribe tribe : KNOWN_TRIBES) {
             if (!player.hasHeadForTribe(tribe)) {
                 eligibleHeads.add(new TotemHead(tribe));
             }

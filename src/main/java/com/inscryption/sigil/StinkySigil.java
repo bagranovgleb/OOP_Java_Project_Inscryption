@@ -6,7 +6,7 @@ package com.inscryption.sigil;
  * less damage on every attack it makes, for as long as it's facing this
  * card - including every lane a multi-strike sigil (Bifurcated/Trifurcated)
  * hits that turn, not just a matchup against this card specifically. A
- * passive, position-based marker - checked by name in
+ * passive, position-based marker - queried by type in
  * GameEngine.computeEffectiveAttack rather than reacting to an event, since
  * the effect depends on current board position, not something that happened.
  * <p>

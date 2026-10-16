@@ -12,6 +12,20 @@ import com.inscryption.modifier.ChallengeModifier;
 import com.inscryption.player.Player;
 import com.inscryption.sigil.ConjuredMarker;
 import com.inscryption.totem.ActiveTotem;
+import com.inscryption.sigil.AirborneSigil;
+import com.inscryption.sigil.BifurcatedStrikeSigil;
+import com.inscryption.sigil.BoneKingSigil;
+import com.inscryption.sigil.BurrowerSigil;
+import com.inscryption.sigil.CorpseEaterSigil;
+import com.inscryption.sigil.GuardianSigil;
+import com.inscryption.sigil.LeaderSigil;
+import com.inscryption.sigil.LooseTailSigil;
+import com.inscryption.sigil.ManyLivesSigil;
+import com.inscryption.sigil.MightyLeapSigil;
+import com.inscryption.sigil.StinkySigil;
+import com.inscryption.sigil.TrifurcatedStrikeSigil;
+import com.inscryption.sigil.UnsacrificeableMarker;
+import com.inscryption.model.Tribe;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,9 +59,9 @@ public class GameEngine {
      */
     public void placeCard(boolean isPlayerSide, int lane, Card card) {
         board.placeCard(isPlayerSide, lane, card);
+        applyActiveTotemIfMatching(isPlayerSide, card);
         card.applySigils(new GameEvent(GameEventType.PLACE, card, null), currentContext());
         triggerGuardianResponse(isPlayerSide, lane);
-        applyActiveTotemIfMatching(isPlayerSide, card);
     }
 
     /**
@@ -64,16 +78,19 @@ public class GameEngine {
      * If this card's owner has an active totem matching one of the card's
      * own tribe tags, grants it a fresh instance of the totem's sigil - a
      * real, lasting ability attached via addSigil(), not a computed bonus.
-     * This is deliberate: every existing hasSigil()-based check throughout
-     * the engine (Airborne's bypass, Mighty Leap, Stinky, ...) then works
-     * on a totem-granted ability automatically, with no special-casing
-     * needed anywhere else.
+     * This is deliberate: typed sigil queries throughout the engine then
+     * treat a totem-granted ability exactly like the same printed ability,
+     * with no special-casing needed anywhere else.
      */
     private void applyActiveTotemIfMatching(boolean isPlayerSide, Card card) {
         Player owner = isPlayerSide ? player : opponent;
         ActiveTotem totem = owner.getActiveTotem();
-        if (totem != null && card.hasSigil(totem.getTribe()) && !card.hasSigil(totem.getGrantedSigilName())) {
-            card.addSigil(totem.createGrantedSigil());
+        if (totem == null || !card.hasTribe(totem.getTribe())) {
+            return;
+        }
+        var grantedSigil = totem.createGrantedSigil();
+        if (!card.hasSameSigilKind(grantedSigil)) {
+            card.addSigil(grantedSigil);
         }
     }
 
@@ -95,7 +112,7 @@ public class GameEngine {
                 continue;
             }
             Card occupant = slots[i].getOccupant();
-            if (occupant != null && occupant.hasSigil("Guardian")) {
+            if (occupant != null && occupant.hasSigil(GuardianSigil.class)) {
                 board.removeCard(reactingSide, i);
                 board.placeCard(reactingSide, lane, occupant);
                 return;
@@ -360,7 +377,7 @@ public class GameEngine {
             }
             Player owner = isPlayerSide ? player : opponent;
             Card corpseEaterCard = owner.getHand().stream()
-                .filter(c -> c.hasSigil("Corpse Eater"))
+                .filter(c -> c.hasSigil(CorpseEaterSigil.class))
                 .findFirst()
                 .orElse(null);
             if (corpseEaterCard != null) {
@@ -385,12 +402,12 @@ public class GameEngine {
      * top of that computed base, same as it would for any other card.
      */
     private int computeEffectiveAttack(Card attacker, boolean attackerIsPlayerSide, int homeLane) {
-        int baseAttack = attacker.hasSigil("Ant") ? countFriendlyAnts(attackerIsPlayerSide) : attacker.getAttack();
+        int baseAttack = attacker.hasTribe(Tribe.ANT) ? countFriendlyAnts(attackerIsPlayerSide) : attacker.getAttack();
         baseAttack += leaderBonus(attackerIsPlayerSide, homeLane);
 
         var opposingSlots = attackerIsPlayerSide ? board.getOpponentSlots() : board.getPlayerSlots();
         Card directOpponent = opposingSlots[homeLane].getOccupant();
-        if (directOpponent != null && directOpponent.hasSigil("Stinky")) {
+        if (directOpponent != null && directOpponent.hasSigil(StinkySigil.class)) {
             return Math.max(0, baseAttack - 1);
         }
         return baseAttack;
@@ -402,13 +419,13 @@ public class GameEngine {
         int bonus = 0;
         if (lane - 1 >= 0) {
             Card left = slots[lane - 1].getOccupant();
-            if (left != null && left.hasSigil("Leader")) {
+            if (left != null && left.hasSigil(LeaderSigil.class)) {
                 bonus += 1;
             }
         }
         if (lane + 1 < slots.length) {
             Card right = slots[lane + 1].getOccupant();
-            if (right != null && right.hasSigil("Leader")) {
+            if (right != null && right.hasSigil(LeaderSigil.class)) {
                 bonus += 1;
             }
         }
@@ -421,7 +438,7 @@ public class GameEngine {
         int count = 0;
         for (var slot : slots) {
             Card occupant = slot.getOccupant();
-            if (occupant != null && occupant.hasSigil("Ant")) {
+            if (occupant != null && occupant.hasTribe(Tribe.ANT)) {
                 count++;
             }
         }
@@ -449,7 +466,7 @@ public class GameEngine {
             int lane = location[1];
             return computeEffectiveAttack(card, isPlayerSide, lane);
         }
-        if (card.hasSigil("Ant")) {
+        if (card.hasTribe(Tribe.ANT)) {
             return countFriendlyAnts(ownerSideIfNotPlaced);
         }
         return card.getAttack();
@@ -474,7 +491,7 @@ public class GameEngine {
 
     /** Which opposing lane indices this attacker's sigils say it should hit. */
     private List<Integer> determineTargetLanes(Card attacker, int lane, int laneCount) {
-        if (attacker.hasSigil("Trifurcated Strike")) {
+        if (attacker.hasSigil(TrifurcatedStrikeSigil.class)) {
             List<Integer> lanes = new ArrayList<>();
             if (lane - 1 >= 0) {
                 lanes.add(lane - 1);
@@ -485,7 +502,7 @@ public class GameEngine {
             }
             return lanes;
         }
-        if (attacker.hasSigil("Bifurcated Strike")) {
+        if (attacker.hasSigil(BifurcatedStrikeSigil.class)) {
             List<Integer> lanes = new ArrayList<>();
             if (lane - 1 >= 0) {
                 lanes.add(lane - 1);
@@ -522,7 +539,7 @@ public class GameEngine {
             defender = relocateBurrowerIfPresent(attackerIsPlayerSide, targetLane, relocatedBurrowers);
         }
 
-        if (defender != null && defender.hasSigil("Loose Tail")) {
+        if (defender != null && defender.hasSigil(LooseTailSigil.class)) {
             // Can only escape if the neighbor lane is genuinely free - the
             // attack itself is never skipped outright, it just ends up
             // landing on whatever's left behind (the Tail decoy) rather
@@ -633,7 +650,7 @@ public class GameEngine {
                 continue;
             }
             Card occupant = slots[i].getOccupant();
-            if (occupant != null && occupant.hasSigil("Burrower") && !alreadyRelocated.contains(occupant)) {
+            if (occupant != null && occupant.hasSigil(BurrowerSigil.class) && !alreadyRelocated.contains(occupant)) {
                 board.removeCard(defenderIsPlayerSide, i);
                 board.placeCard(defenderIsPlayerSide, targetLane, occupant);
                 alreadyRelocated.add(occupant);
@@ -645,7 +662,7 @@ public class GameEngine {
 
     /** Airborne attackers skip the defender entirely, unless it has Mighty Leap. */
     private boolean bypassesDefender(Card attacker, Card defender) {
-        return attacker.hasSigil("Airborne") && !defender.hasSigil("Mighty Leap");
+        return attacker.hasSigil(AirborneSigil.class) && !defender.hasSigil(MightyLeapSigil.class);
     }
 
     /**
@@ -664,7 +681,7 @@ public class GameEngine {
         for (var slot : slots) {
             Card occupant = slot.getOccupant();
             if (occupant != null && !occupant.isAlive()) {
-                owner.gainBones(occupant.hasSigil("Bone King") ? 4 : 1);
+                owner.gainBones(occupant.hasSigil(BoneKingSigil.class) ? 4 : 1);
             }
         }
     }
@@ -681,10 +698,10 @@ public class GameEngine {
         if (card == null) {
             throw new InvalidSacrificeException("No card in lane " + lane + " to sacrifice");
         }
-        if (card.hasSigil("Unsacrificeable")) {
+        if (card.hasSigil(UnsacrificeableMarker.class)) {
             throw new InvalidSacrificeException(card.getName() + " cannot be sacrificed");
         }
-        if (!card.hasSigil("Many Lives")) {
+        if (!card.hasSigil(ManyLivesSigil.class)) {
             board.removeCard(isPlayerSide, lane);
         }
         Player owner = isPlayerSide ? player : opponent;

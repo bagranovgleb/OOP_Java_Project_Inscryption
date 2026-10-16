@@ -42,7 +42,7 @@ public final class RandomizableSigils {
      */
     public static Sigil randomExcluding(Random random, Card card) {
         List<Supplier<Sigil>> eligible = POOL.stream()
-            .filter(factory -> !card.hasSigil(factory.get().getName()))
+            .filter(factory -> !card.hasSameSigilKind(factory.get()))
             .toList();
         if (eligible.isEmpty()) {
             return random(random);

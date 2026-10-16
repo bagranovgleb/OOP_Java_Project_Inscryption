@@ -7,6 +7,7 @@ import com.inscryption.model.ResourceType;
 import com.inscryption.player.Player;
 import com.inscryption.run.NodeContent;
 import com.inscryption.run.RunContext;
+import com.inscryption.sigil.ExtraSigilMarker;
 import com.inscryption.sigil.RandomizableSigils;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import com.inscryption.util.GameRandom;
+import com.inscryption.model.Tribe;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -52,8 +54,8 @@ public class DeckTrialEvent implements NodeContent {
     private record Condition(String description, Predicate<List<Card>> check) {
     }
 
-    private static final List<String> KNOWN_TRIBES = List.of(
-        "Avian", "Canine", "Hooved", "Insect", "Reptile", "Squirrel", "Ant");
+    private static final List<Tribe> KNOWN_TRIBES = List.of(
+        Tribe.AVIAN, Tribe.CANINE, Tribe.HOOVED, Tribe.INSECT, Tribe.REPTILE, Tribe.SQUIRREL, Tribe.ANT);
 
     private final List<Condition> conditions = List.of(
         new Condition("Trial of Bones: the 3 drawn cards must cost at least 5 Bones combined",
@@ -143,10 +145,10 @@ public class DeckTrialEvent implements NodeContent {
      * since this project never places a pelt into a deck as a real card.
      */
     private static int sumPower(List<Card> cards) {
-        long antCount = cards.stream().filter(c -> c.hasSigil("Ant")).count();
+        long antCount = cards.stream().filter(c -> c.hasTribe(Tribe.ANT)).count();
         int total = 0;
         for (Card c : cards) {
-            total += c.hasSigil("Ant") ? (int) antCount : c.getAttack();
+            total += c.hasTribe(Tribe.ANT) ? (int) antCount : c.getAttack();
         }
         return total;
     }
@@ -155,14 +157,14 @@ public class DeckTrialEvent implements NodeContent {
     private static int sumSigils(List<Card> cards) {
         return cards.stream()
             .mapToInt(c -> (int) c.getVisibleSigils().stream()
-                .filter(s -> !s.getName().equals("Extra Sigil"))
+                .filter(s -> !(s instanceof ExtraSigilMarker))
                 .count())
             .sum();
     }
 
     private static boolean hasKin(List<Card> cards) {
-        for (String tribe : KNOWN_TRIBES) {
-            long count = cards.stream().filter(c -> c.hasSigil(tribe)).count();
+        for (Tribe tribe : KNOWN_TRIBES) {
+            long count = cards.stream().filter(c -> c.hasTribe(tribe)).count();
             if (count >= 2) {
                 return true;
             }
@@ -170,9 +172,10 @@ public class DeckTrialEvent implements NodeContent {
         return false;
     }
 
+    /** Every ordinary card except Dam (a sigil-spawned obstacle) and Squirrel (a special, separate-deck resource, not a normal reward). */
     private CardType randomCardTypeExcludingDam() {
         CardType[] pool = Arrays.stream(CardType.values())
-            .filter(t -> t != CardType.DAM)
+            .filter(t -> t != CardType.DAM && t != CardType.SQUIRREL)
             .toArray(CardType[]::new);
         return pool[random.nextInt(pool.length)];
     }
